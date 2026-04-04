@@ -529,7 +529,8 @@ export default function App() {
   const [loadingImage, setLoadingImage] = useState(false);
   const [error, setError] = useState(null);
 
-  // Set to empty string for preview environment; execution environment provides the key at runtime.
+  // Set to empty string for the compilation environment.
+  // When deploying locally or on Vercel, use: import.meta.env.VITE_GEMINI_API_KEY
   const apiKey = "";
 
   // --- Move FAQS inside so it can use setActiveTab ---
@@ -594,7 +595,7 @@ export default function App() {
     setError(null);
 
     try {
-      // Using stable Imagen 4.0 endpoint
+      // Production URL using Imagen 4.0
       const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`;
       const options = {
         method: 'POST',
@@ -1224,15 +1225,15 @@ export default function App() {
                   <h5 className="font-bold text-slate-900 uppercase tracking-widest text-xs">Implementation Steps</h5>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <p className="font-bold text-slate-800 flex items-center gap-2"><CheckCircle2 size={16} className="text-slate-500"/> 1. Preparation</p>
+                      <p className="font-bold text-slate-800 flex items-center gap-4"><CheckCircle2 size={16} className="text-slate-500"/> 1. Preparation</p>
                       <p className="text-sm text-slate-600 leading-relaxed pl-6">Have students or parent volunteers take clear, well-lit photos of the finished artwork and their artist statements. Compile these into a shared Google Slides presentation or Google Site.</p>
                     </div>
                     <div className="space-y-2">
-                      <p className="font-bold text-slate-800 flex items-center gap-2"><CheckCircle2 size={16} className="text-slate-500"/> 2. Staging</p>
+                      <p className="font-bold text-slate-800 flex items-center gap-4"><CheckCircle2 size={16} className="text-slate-500"/> 2. Staging</p>
                       <p className="text-sm text-slate-600 leading-relaxed pl-6">Generate a free QR code linking to the digital gallery. Print, laminate, and post these QR flyers at high-traffic zones (main office windows, car-line pickup areas, kindergarten gates).</p>
                     </div>
                     <div className="space-y-2 sm:col-span-2">
-                      <p className="font-bold text-slate-800 flex items-center gap-2"><CheckCircle2 size={16} className="text-slate-500"/> 3. Execution</p>
+                      <p className="font-bold text-slate-800 flex items-center gap-4"><CheckCircle2 size={16} className="text-slate-500"/> 3. Execution</p>
                       <p className="text-sm text-slate-600 leading-relaxed pl-6">Send out a ParentSquare blast inviting the community to "Walk the Trail." This allows working parents to view the art on their own time straight from their phones while waiting for their students.</p>
                     </div>
                   </div>
