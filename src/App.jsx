@@ -529,7 +529,7 @@ export default function App() {
   const [loadingImage, setLoadingImage] = useState(false);
   const [error, setError] = useState(null);
 
-  const apiKey = ""; 
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
   // --- Move FAQS inside so it can use setActiveTab ---
   const FAQS = [
