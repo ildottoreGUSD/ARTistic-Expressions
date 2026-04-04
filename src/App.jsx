@@ -529,9 +529,9 @@ export default function App() {
   const [loadingImage, setLoadingImage] = useState(false);
   const [error, setError] = useState(null);
 
-  // Leave empty for this preview environment. 
-  // When running on Vercel, you can swap this to: import.meta.env.VITE_GEMINI_API_KEY
-const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+  // IMPORTANT: For the live preview environment, this should remain empty. 
+  // When deploying to Vercel with Vite, change this line to: const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+  const apiKey = "";
 
   // --- Move FAQS inside so it can use setActiveTab ---
   const FAQS = [
@@ -574,8 +574,14 @@ const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
     for (let i = 0; i < retries; i++) {
       try {
         const response = await fetch(url, options);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        return await response.json();
+        // Safely parse Google's detailed error JSON to see exactly what went wrong
+        const data = await response.json().catch(() => null); 
+        
+        if (!response.ok) {
+          const errorMessage = data?.error?.message || `HTTP ${response.status}`;
+          throw new Error(errorMessage);
+        }
+        return data;
       } catch (error) {
         if (i === retries - 1) throw error;
         await new Promise(res => setTimeout(res, delay));
@@ -587,24 +593,30 @@ const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
   const fetchImage = async (id, prompt) => {
     setLoadingImage(true);
     setError(null);
+
+    // Guard against missing API key on Vercel
+    if (!apiKey || apiKey === "undefined") {
+      setError("Configuration Error: API Key is missing on Vercel. Please check your Environment Variables.");
+      setLoadingImage(false);
+      return;
+    }
+
     try {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`;
       const options = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ instances: [{ prompt }], parameters: { sampleCount: 1 } })
+        // Updated instances structure to strictly match Imagen 4.0 requirements
+        body: JSON.stringify({ instances: { prompt }, parameters: { sampleCount: 1 } })
       };
       
       const result = await fetchWithRetry(url, options);
       
-      if (result.error) {
-        throw new Error(result.error.message || "Google API Error");
-      }
-      
       setGeneratedImages(prev => ({ ...prev, [id]: `data:image/png;base64,${result.predictions[0].bytesBase64Encoded}` }));
     } catch (err) { 
       console.error("Image generation error:", err);
-      setError("The image generator is currently busy or experiencing network errors. Please try again."); 
+      // This will now print Google's exact error message on your screen!
+      setError(`Error: ${err.message}`); 
     } finally { 
       setLoadingImage(false); 
     }
