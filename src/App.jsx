@@ -529,7 +529,7 @@ export default function App() {
   const [loadingImage, setLoadingImage] = useState(false);
   const [error, setError] = useState(null);
 
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+  const apiKey = "";
 
   // --- Move FAQS inside so it can use setActiveTab ---
   const FAQS = [
@@ -718,9 +718,16 @@ export default function App() {
           <div className="space-y-16 animate-fade-in">
             
             {/* INSTRUCTIONAL FOUNDATIONS HERO */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-16">
+            <div className="mb-12 max-w-4xl space-y-6">
+              <h2 className="text-4xl font-black text-slate-900">Teaching Strategies</h2>
+              <p className="text-xl text-slate-600 leading-relaxed">
+                Introducing the theme for the unit will also require the need to establish an understanding of abstract art.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
               {/* Establish the Theme */}
-              <div className="lg:col-span-5 bg-teal-600 p-8 sm:p-10 rounded-[3rem] shadow-xl text-white flex flex-col justify-between relative overflow-hidden">
+              <div className="bg-teal-600 p-8 sm:p-10 rounded-[3rem] shadow-xl text-white flex flex-col justify-between relative overflow-hidden">
                 <div className="absolute right-0 top-0 opacity-10 transform translate-x-1/4 -translate-y-1/4">
                   <Lightbulb size={200} />
                 </div>
@@ -728,9 +735,9 @@ export default function App() {
                   <div className="bg-teal-500/50 w-12 h-12 rounded-xl flex items-center justify-center mb-6">
                     <Presentation size={24} className="text-white" />
                   </div>
-                  <h2 className="text-3xl font-black mb-4">Establish the Theme</h2>
-                  <p className="text-teal-50 leading-relaxed text-lg">
-                    Before diving into art creation, students need to explore this year's central question. Use this slide deck to facilitate a foundational discussion about the concept of strength and support.
+                  <h3 className="text-2xl font-black mb-4">Establish the Theme</h3>
+                  <p className="text-teal-50 leading-relaxed text-lg mb-8">
+                    The slide deck can be used to establish the overall theme of "What gives me strength?" with your students.
                   </p>
                 </div>
                 <a href="https://docs.google.com/presentation/d/1lirIthosxBehU_7ZBqy38MB3nS7aM6QlP7AMaD_TtNk/copy" target="_blank" rel="noreferrer" className="relative z-10 bg-white text-teal-900 px-6 py-4 rounded-xl font-bold shadow-lg hover:bg-teal-50 transition flex items-center justify-center gap-3 text-center">
@@ -739,24 +746,27 @@ export default function App() {
               </div>
 
               {/* Understand Abstract Art */}
-              <div className="lg:col-span-7 bg-white p-8 sm:p-10 rounded-[3rem] border border-slate-200 shadow-xl flex flex-col justify-center">
-                <div className="bg-slate-100 w-12 h-12 rounded-xl flex items-center justify-center mb-6 text-slate-700">
-                  <Palette size={24} />
+              <div className="bg-slate-800 p-8 sm:p-10 rounded-[3rem] shadow-xl text-white flex flex-col justify-between relative overflow-hidden">
+                <div className="absolute right-0 top-0 opacity-10 transform translate-x-1/4 -translate-y-1/4">
+                  <Palette size={200} />
                 </div>
-                <h2 className="text-3xl font-black text-slate-900 mb-4">Understand Abstract Art</h2>
-                <p className="text-slate-600 text-lg leading-relaxed mb-6">
-                  Effectively introducing the theme also requires establishing an understanding of abstract art. Students need a bridge to move from drawing literal objects to expressing powerful personal metaphors.
-                </p>
-                <div className="bg-teal-50 p-6 rounded-2xl border border-teal-100 text-teal-900">
-                  <p className="leading-relaxed">
-                    The <strong>Thematic Development Guide</strong> below is a detailed approach to teaching this abstract language. It provides tailored, step-by-step instructions differentiated for two general developmental stages (3rd-4th Grade and 5th-6th Grade), including specific strategies for GATE and English Learner (EL) populations.
+                <div className="relative z-10 mb-8">
+                  <div className="bg-slate-700 w-12 h-12 rounded-xl flex items-center justify-center mb-6 text-white">
+                    <Layers size={24} />
+                  </div>
+                  <h3 className="text-2xl font-black mb-4">Understand Abstract Art</h3>
+                  <p className="text-slate-300 leading-relaxed text-lg mb-8">
+                    The thematic development section below is a more detailed approach to introducing abstract art, differentiated for two general developmental stages.
                   </p>
                 </div>
+                <button onClick={() => document.getElementById('thematic-guide')?.scrollIntoView({ behavior: 'smooth' })} className="relative z-10 bg-white/10 text-white border border-white/20 px-6 py-4 rounded-xl font-bold hover:bg-white/20 transition flex items-center justify-center gap-3 text-center">
+                  Explore the Guide Below
+                </button>
               </div>
             </div>
 
             {/* THEMATIC DEVELOPMENT SECTION */}
-            <section className="bg-white p-6 sm:p-10 rounded-[2.5rem] border border-slate-100 shadow-xl text-left">
+            <section id="thematic-guide" className="bg-white p-6 sm:p-10 rounded-[2.5rem] border border-slate-100 shadow-xl text-left scroll-mt-24">
               <div className="mb-10 text-center max-w-2xl mx-auto">
                 <h2 className="text-3xl font-black text-slate-900 mb-4">Thematic Development Guide</h2>
                 <p className="text-slate-500 text-lg">Step-by-step instructional pathways to bridge the gap between literal objects and personal strength.</p>
