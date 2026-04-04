@@ -531,7 +531,7 @@ export default function App() {
 
   // Set to empty string for the compilation environment.
   // When deploying locally or on Vercel, use: import.meta.env.VITE_GEMINI_API_KEY
-  const apiKey = "";
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY || "";
 
   // --- Move FAQS inside so it can use setActiveTab ---
   const FAQS = [
