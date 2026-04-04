@@ -474,6 +474,7 @@ const APSealFacsimile = () => (
         <textPath href="#bottomCurve" startOffset="50%" textAnchor="middle">ART & CREATIVE MATERIALS INSTITUTE CERTIFIED</textPath>
       </text>
       
+      {/* Placed fully below the circle at y=215 */}
       <text x="100" y="215" fontSize="13" fontFamily="sans-serif" textAnchor="middle" fill="#334155">
         <tspan x="100" dy="0">Conforms to</tspan>
         <tspan x="100" dy="16" fontWeight="bold">ASTM D 4236</tspan>
@@ -530,8 +531,9 @@ export default function App() {
 
   // Set to empty string as required for the compilation environment.
   // The execution environment provides the key at runtime.
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+  const apiKey = "";
 
+  // --- Move FAQS inside so it can use setActiveTab ---
   const FAQS = [
     { 
       id: 'supplies', question: "Do we receive art kits?", icon: <Box size={20} />, 
@@ -566,20 +568,26 @@ export default function App() {
   const toggleDay = (day) => setActiveDay(activeDay === day ? null : day);
   const toggleMetaphor = (id) => setActiveMetaphor(activeMetaphor === id ? null : id);
 
+  // Helper with Exponential backoff to comply with network reliability rules
   const fetchWithRetry = async (url, options, retries = 5) => {
     let delay = 1000;
     for (let i = 0; i < retries; i++) {
       try {
         const response = await fetch(url, options);
+        // Safely parse Google's detailed error JSON to see exactly what went wrong
         const data = await response.json().catch(() => null); 
         
         if (!response.ok) {
+          // Check specifically for paid plan errors to give better UX
+          if (data?.error?.message?.toLowerCase().includes("paid plan")) {
+            throw new Error("Imagen generation is currently restricted to accounts with an active billing plan. Please verify your Google Cloud project status.");
+          }
           const errorMessage = data?.error?.message || `HTTP ${response.status}`;
           throw new Error(errorMessage);
         }
         return data;
       } catch (error) {
-        if (i === retries - 1) throw error;
+        if (i === retries - 1 || error.message.includes("billing")) throw error;
         await new Promise(res => setTimeout(res, delay));
         delay *= 2;
       }
@@ -591,22 +599,31 @@ export default function App() {
     setError(null);
 
     try {
+      // Final production URL using Imagen 4.0
       const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`;
       const options = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ instances: { prompt: promptText }, parameters: { sampleCount: 1 } })
+        // Strictly align with latest Google instances/parameters formatting
+        body: JSON.stringify({ 
+          instances: [{ prompt: promptText }], 
+          parameters: { sampleCount: 1 } 
+        })
       };
       
       const result = await fetchWithRetry(url, options);
-      if (result && result.predictions && result.predictions[0]) {
-        setGeneratedImages(prev => ({ ...prev, [id]: `data:image/png;base64,${result.predictions[0].bytesBase64Encoded}` }));
+      
+      if (result?.predictions?.[0]?.bytesBase64Encoded) {
+        setGeneratedImages(prev => ({ 
+          ...prev, 
+          [id]: `data:image/png;base64,${result.predictions[0].bytesBase64Encoded}` 
+        }));
       } else {
-        throw new Error("Invalid response structure from API");
+        throw new Error("The AI model returned an unexpected response format.");
       }
     } catch (err) { 
       console.error("Image generation error:", err);
-      setError(`Error: ${err.message || "Failed to generate image"}`); 
+      setError(`Error: ${err.message}`); 
     } finally { 
       setLoadingImage(false); 
     }
@@ -616,6 +633,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#f8fafb] font-sans text-slate-800 text-left">
+      {/* BRAND HEADER */}
       <header className="bg-slate-900 text-white py-12 px-6 border-b-8 border-teal-600 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/10 rounded-full -mr-20 -mt-20 blur-3xl" />
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8 relative z-10 text-left">
@@ -634,6 +652,7 @@ export default function App() {
         </div>
       </header>
 
+      {/* NAV SYSTEM */}
       <nav className="bg-white border-b sticky top-0 z-50 shadow-sm">
         <div className="max-w-6xl mx-auto px-6 flex justify-center md:justify-start overflow-x-auto">
           <div className="flex gap-8 lg:gap-12 min-w-max">
@@ -649,6 +668,7 @@ export default function App() {
       <main className="max-w-6xl mx-auto p-6 lg:p-12">
         {activeTab === 'classroom' && (
           <div className="space-y-16 animate-fade-in">
+            {/* RECRUITMENT CARD */}
             <div className="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-xl flex flex-col md:flex-row items-center gap-8">
               <div className="bg-teal-50 p-6 rounded-3xl text-teal-600"><UserPlus size={48}/></div>
               <div className="flex-grow text-center md:text-left">
@@ -723,6 +743,8 @@ export default function App() {
 
         {activeTab === 'strategies' && (
           <div className="space-y-16 animate-fade-in">
+            
+            {/* INSTRUCTIONAL FOUNDATIONS HERO */}
             <div className="mb-12 max-w-4xl space-y-6">
               <h2 className="text-4xl font-black text-slate-900">Teaching Strategies</h2>
               <p className="text-xl text-slate-600 leading-relaxed">
@@ -731,6 +753,7 @@ export default function App() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
+              {/* Establish the Theme */}
               <div className="bg-teal-600 p-8 sm:p-10 rounded-[3rem] shadow-xl text-white flex flex-col justify-between relative overflow-hidden">
                 <div className="absolute right-0 top-0 opacity-10 transform translate-x-1/4 -translate-y-1/4">
                   <Lightbulb size={200} />
@@ -749,6 +772,7 @@ export default function App() {
                 </a>
               </div>
 
+              {/* Understand Abstract Art */}
               <div className="bg-slate-800 p-8 sm:p-10 rounded-[3rem] shadow-xl text-white flex flex-col justify-between relative overflow-hidden">
                 <div className="absolute right-0 top-0 opacity-10 transform translate-x-1/4 -translate-y-1/4">
                   <Palette size={200} />
@@ -768,6 +792,7 @@ export default function App() {
               </div>
             </div>
 
+            {/* THEMATIC DEVELOPMENT SECTION */}
             <section id="thematic-guide" className="bg-white p-6 sm:p-10 rounded-[2.5rem] border border-slate-100 shadow-xl text-left scroll-mt-24">
               <div className="mb-10 text-center max-w-2xl mx-auto">
                 <h2 className="text-3xl font-black text-slate-900 mb-4">Thematic Development Guide</h2>
@@ -775,6 +800,7 @@ export default function App() {
               </div>
               
               <div className="space-y-12">
+                {/* 3rd & 4th Grade Approach */}
                 <div className="bg-emerald-50/30 p-6 sm:p-10 rounded-[2rem] border border-emerald-100 shadow-sm">
                   <div className="border-b border-emerald-200 pb-6 mb-8">
                     <div className="flex items-center gap-4 mb-2">
@@ -786,6 +812,7 @@ export default function App() {
                   </div>
 
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Step 1 */}
                     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col h-full">
                       <h4 className="font-black text-lg text-slate-900 mb-3 flex items-center gap-2"><Search size={20} className="text-emerald-500"/> Step 1: Concept Exploration</h4>
                       <div className="text-sm text-slate-700 space-y-3 flex-grow">
@@ -798,6 +825,7 @@ export default function App() {
                       </div>
                     </div>
 
+                    {/* Step 2 */}
                     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col h-full">
                       <h4 className="font-black text-lg text-slate-900 mb-3 flex items-center gap-2"><Palette size={20} className="text-emerald-500"/> Step 2: Color-Value Mapping</h4>
                       <div className="text-sm text-slate-700 space-y-3 flex-grow">
@@ -810,6 +838,7 @@ export default function App() {
                       </div>
                     </div>
 
+                    {/* Step 3 */}
                     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col h-full">
                       <h4 className="font-black text-lg text-slate-900 mb-3 flex items-center gap-2"><MessageSquare size={20} className="text-emerald-500"/> Step 3: Dialogue & Metaphor</h4>
                       <div className="text-sm text-slate-700 space-y-3 flex-grow">
@@ -822,6 +851,7 @@ export default function App() {
                       </div>
                     </div>
 
+                    {/* Step 4 */}
                     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col h-full">
                       <h4 className="font-black text-lg text-slate-900 mb-3 flex items-center gap-2"><Layers size={20} className="text-emerald-500"/> Step 4: Creative Application</h4>
                       <div className="text-sm text-slate-700 space-y-3 flex-grow">
@@ -836,6 +866,7 @@ export default function App() {
                   </div>
                 </div>
 
+                {/* 5th & 6th Grade Approach */}
                 <div className="bg-indigo-50/30 p-6 sm:p-10 rounded-[2rem] border border-indigo-100 shadow-sm mt-12">
                   <div className="border-b border-indigo-200 pb-6 mb-8">
                     <div className="flex items-center gap-4 mb-2">
@@ -847,6 +878,7 @@ export default function App() {
                   </div>
 
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Step 1 */}
                     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col h-full">
                       <h4 className="font-black text-lg text-slate-900 mb-3 flex items-center gap-2"><Search size={20} className="text-indigo-500"/> Step 1: Concept Exploration</h4>
                       <div className="text-sm text-slate-700 space-y-3 flex-grow">
@@ -859,6 +891,7 @@ export default function App() {
                       </div>
                     </div>
 
+                    {/* Step 2 */}
                     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col h-full">
                       <h4 className="font-black text-lg text-slate-900 mb-3 flex items-center gap-2"><Palette size={20} className="text-indigo-500"/> Step 2: Color-Value Mapping</h4>
                       <div className="text-sm text-slate-700 space-y-3 flex-grow">
@@ -871,6 +904,7 @@ export default function App() {
                       </div>
                     </div>
 
+                    {/* Step 3 */}
                     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col h-full">
                       <h4 className="font-black text-lg text-slate-900 mb-3 flex items-center gap-2"><MessageSquare size={20} className="text-indigo-500"/> Step 3: Dialogue & Metaphor</h4>
                       <div className="text-sm text-slate-700 space-y-3 flex-grow">
@@ -883,6 +917,7 @@ export default function App() {
                       </div>
                     </div>
 
+                    {/* Step 4 */}
                     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col h-full">
                       <h4 className="font-black text-lg text-slate-900 mb-3 flex items-center gap-2"><Layers size={20} className="text-indigo-500"/> Step 4: Creative Application</h4>
                       <div className="text-sm text-slate-700 space-y-3 flex-grow">
@@ -896,9 +931,11 @@ export default function App() {
                     </div>
                   </div>
                 </div>
+
               </div>
             </section>
 
+            {/* METAPHOR LAB */}
             <section className="bg-slate-900 text-white p-6 sm:p-10 lg:p-16 rounded-[3rem] shadow-2xl relative overflow-hidden">
                <div className="relative z-10">
                 <div className="text-center max-w-2xl mx-auto mb-16">
@@ -959,6 +996,7 @@ export default function App() {
               </div>
             </section>
 
+            {/* INCLUSION TOOLKIT */}
             <section className="bg-white p-1 rounded-[3rem] border border-slate-100 shadow-xl overflow-hidden">
               <div className="p-8 sm:p-10 border-b border-slate-50 bg-teal-50/30">
                 <div className="flex items-center gap-4 mb-2">
@@ -1100,6 +1138,7 @@ export default function App() {
 
         {activeTab === 'showcases' && (
           <div className="space-y-16 animate-fade-in text-left">
+            {/* HERO SECTION */}
             <div className="bg-white p-8 sm:p-12 rounded-[3rem] border border-slate-200 shadow-xl flex flex-col md:flex-row items-center gap-8 lg:gap-12 text-center md:text-left">
               <div className="bg-teal-50 p-8 rounded-full text-teal-600 shrink-0">
                 <Star size={64}/>
@@ -1112,11 +1151,13 @@ export default function App() {
               </div>
             </div>
 
+            {/* THREE IDEAS SECTION */}
             <div className="space-y-8">
               <h3 className="text-2xl font-black text-slate-900 flex items-center gap-3">
                 <Lightbulb className="text-yellow-500" size={28}/> Event Concept Ideas
               </h3>
 
+              {/* IDEA 1 */}
               <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden flex flex-col lg:flex-row">
                 <div className="bg-teal-600 p-8 lg:w-1/3 flex flex-col justify-center text-white relative overflow-hidden">
                   <div className="absolute right-0 top-0 opacity-10 transform translate-x-1/4 -translate-y-1/4">
@@ -1145,6 +1186,7 @@ export default function App() {
                 </div>
               </div>
 
+              {/* IDEA 2 */}
               <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden flex flex-col lg:flex-row">
                 <div className="bg-yellow-500 p-8 lg:w-1/3 flex flex-col justify-center text-white relative overflow-hidden">
                   <div className="absolute right-0 top-0 opacity-10 transform translate-x-1/4 -translate-y-1/4">
@@ -1159,7 +1201,7 @@ export default function App() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <p className="font-bold text-slate-800 flex items-center gap-2"><CheckCircle2 size={16} className="text-yellow-600"/> 1. Preparation</p>
-                      <p className="text-sm text-slate-600 leading-relaxed pl-6">Collaborate with your site PTA to sponsor coffee, tea, and light pastries. Set a date 2-3 weeks in advance and heavily promote it at the drop-off protocol gate.</p>
+                      <p className="text-sm text-slate-600 leading-relaxed pl-6">Collaborate with your site PTA to sponsor coffee, tea, and light pastries. Set a date 2-3 weeks in advance and heavily promote it at the drop-off gate.</p>
                     </div>
                     <div className="space-y-2">
                       <p className="font-bold text-slate-800 flex items-center gap-2"><CheckCircle2 size={16} className="text-yellow-600"/> 2. Staging</p>
@@ -1173,6 +1215,7 @@ export default function App() {
                 </div>
               </div>
 
+              {/* IDEA 3 */}
               <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden flex flex-col lg:flex-row">
                 <div className="bg-slate-800 p-8 lg:w-1/3 flex flex-col justify-center text-white relative overflow-hidden">
                   <div className="absolute right-0 top-0 opacity-10 transform translate-x-1/4 -translate-y-1/4">
@@ -1202,6 +1245,7 @@ export default function App() {
               </div>
             </div>
 
+            {/* PROMOTIONAL TOOLKIT */}
             <div className="bg-teal-50/50 p-8 sm:p-12 rounded-[3rem] border border-teal-100 shadow-inner mt-16">
               <div className="mb-8 text-center max-w-2xl mx-auto">
                 <Megaphone className="text-teal-600 mx-auto mb-4" size={40} />
@@ -1253,6 +1297,7 @@ export default function App() {
 
         {activeTab === 'supplies' && (
           <div className="space-y-16 animate-fade-in text-left">
+            {/* REORGANIZED SUPPLY HUB */}
             <section className="bg-white rounded-3xl p-6 sm:p-10 lg:p-12 border border-slate-100 shadow-xl">
               <div className="mb-10 text-center max-w-2xl mx-auto">
                 <ShoppingBag className="text-teal-600 mx-auto mb-4" size={40} />
@@ -1260,6 +1305,7 @@ export default function App() {
                 <p className="text-slate-600">Please work with your Principal or Principal's designee to acquire needed supplies. These categories are designed to support broad mixed-media exploration.</p>
               </div>
 
+              {/* Grid layout replaces the old tabs */}
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-16">
                 {EXTENDED_SUPPLIES.map((cat) => (
                   <div key={cat.id} className="bg-slate-50 p-6 sm:p-8 rounded-3xl border border-slate-100 shadow-sm flex flex-col h-full hover:shadow-md transition-all group">
@@ -1285,6 +1331,7 @@ export default function App() {
                 ))}
               </div>
 
+              {/* SAFETY SECTION */}
               <div className="bg-slate-900 text-white p-8 sm:p-12 lg:p-16 rounded-[2.5rem] shadow-2xl flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
                 <div className="w-full lg:w-1/3 shrink-0">
                   <APSealFacsimile />
@@ -1308,6 +1355,7 @@ export default function App() {
 
         {activeTab === 'faqs' && (
           <div className="space-y-16 animate-fade-in text-left">
+            {/* INSTRUCTIONAL FAQS */}
             <section className="bg-white rounded-3xl p-6 sm:p-10 lg:p-12 border border-slate-200 shadow-xl">
                <div className="text-center mb-10">
                 <h2 className="text-3xl font-black text-teal-900 text-center">Instructional Hub FAQs</h2>
@@ -1340,6 +1388,7 @@ export default function App() {
             </section>
           </div>
         )}
+
       </main>
 
       <footer className="bg-slate-900 text-white py-16 sm:py-20 px-6 border-t-[12px] border-teal-600 mt-20">
@@ -1371,6 +1420,7 @@ export default function App() {
         </div>
       </footer>
 
+      {/* PROMO MODAL */}
       {activePromo && PROMO_CONTENT[activePromo] && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setActivePromo(null)}></div>
