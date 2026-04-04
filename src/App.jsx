@@ -529,8 +529,7 @@ export default function App() {
   const [loadingImage, setLoadingImage] = useState(false);
   const [error, setError] = useState(null);
 
-  // Set to empty string as required for the compilation environment.
-  // The execution environment provides the key at runtime.
+  // Set to empty string for preview environment; execution environment provides the key at runtime.
   const apiKey = "";
 
   // --- Move FAQS inside so it can use setActiveTab ---
@@ -578,16 +577,12 @@ export default function App() {
         const data = await response.json().catch(() => null); 
         
         if (!response.ok) {
-          // Check specifically for paid plan errors to give better UX
-          if (data?.error?.message?.toLowerCase().includes("paid plan")) {
-            throw new Error("Imagen generation is currently restricted to accounts with an active billing plan. Please verify your Google Cloud project status.");
-          }
           const errorMessage = data?.error?.message || `HTTP ${response.status}`;
           throw new Error(errorMessage);
         }
         return data;
       } catch (error) {
-        if (i === retries - 1 || error.message.includes("billing")) throw error;
+        if (i === retries - 1) throw error;
         await new Promise(res => setTimeout(res, delay));
         delay *= 2;
       }
@@ -599,14 +594,14 @@ export default function App() {
     setError(null);
 
     try {
-      // Final production URL using Imagen 4.0
+      // Using stable Imagen 4.0 endpoint
       const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`;
       const options = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         // Strictly align with latest Google instances/parameters formatting
         body: JSON.stringify({ 
-          instances: [{ prompt: promptText }], 
+          instances: { prompt: promptText }, 
           parameters: { sampleCount: 1 } 
         })
       };
