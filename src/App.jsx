@@ -529,7 +529,9 @@ export default function App() {
   const [loadingImage, setLoadingImage] = useState(false);
   const [error, setError] = useState(null);
 
-  const apiKey = "";
+  // Leave empty for this preview environment. 
+  // When running on Vercel, you can swap this to: import.meta.env.VITE_GEMINI_API_KEY
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
   // --- Move FAQS inside so it can use setActiveTab ---
   const FAQS = [
@@ -594,8 +596,14 @@ export default function App() {
       };
       
       const result = await fetchWithRetry(url, options);
+      
+      if (result.error) {
+        throw new Error(result.error.message || "Google API Error");
+      }
+      
       setGeneratedImages(prev => ({ ...prev, [id]: `data:image/png;base64,${result.predictions[0].bytesBase64Encoded}` }));
-    } catch { 
+    } catch (err) { 
+      console.error("Image generation error:", err);
       setError("The image generator is currently busy or experiencing network errors. Please try again."); 
     } finally { 
       setLoadingImage(false); 
