@@ -6,6 +6,8 @@ A running record of decisions, changes, and progress on this project.
 
 ## 2026-04-24
 
+- Updated favicon to `favicon_v2.svg` — custom badge-style icon with sun, hills, and gold arc
+- Updated `index.html` favicon `href` to point to new file
 - Renamed GitHub repo from `my-react-site` to `ARTistic-Expressions`
 - Updated `git remote origin` URL to match new repo name
 - Updated `index.html` `<title>` from `my-react-site` to `ARTistic Expressions`
