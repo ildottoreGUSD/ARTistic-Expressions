@@ -529,10 +529,6 @@ export default function App() {
   const [loadingImage, setLoadingImage] = useState(false);
   const [error, setError] = useState(null);
 
-  // Set to empty string for the compilation environment.
-  // When deploying locally or on Vercel, use: import.meta.env.VITE_GEMINI_API_KEY
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY || "";
-
   // --- Move FAQS inside so it can use setActiveTab ---
   const FAQS = [
     { 
@@ -595,19 +591,13 @@ export default function App() {
     setError(null);
 
     try {
-      // Production URL using Imagen 4.0
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`;
       const options = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        // Strictly align with latest Google instances/parameters formatting
-        body: JSON.stringify({ 
-          instances: { prompt: promptText }, 
-          parameters: { sampleCount: 1 } 
-        })
+        body: JSON.stringify({ prompt: promptText }),
       };
-      
-      const result = await fetchWithRetry(url, options);
+
+      const result = await fetchWithRetry('/api/generate-image', options);
       
       if (result?.predictions?.[0]?.bytesBase64Encoded) {
         setGeneratedImages(prev => ({ 
