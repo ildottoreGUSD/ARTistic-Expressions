@@ -4,6 +4,16 @@ A running record of decisions, changes, and progress on this project.
 
 ---
 
+## 2026-07-01
+
+- Security review revealed `VITE_GEMINI_API_KEY` was being compiled into the public JS bundle, exposing the API key to any site visitor
+- Fixed by creating a Vercel serverless function (`api/generate-image.js`) to proxy Gemini API calls server-side
+- Client-side code now calls `/api/generate-image` — key never reaches the browser
+- Rotated the compromised API key; new key created via Google AI Studio backed by a paid GCloud project
+- Verified fix: JS bundle contains no API key or direct Gemini URL; image generation confirmed working end-to-end
+
+---
+
 ## 2026-04-24
 
 - Updated favicon to `favicon_v2.svg` — custom badge-style icon with sun, hills, and gold arc
