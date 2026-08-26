@@ -4,6 +4,14 @@ A running record of decisions, changes, and progress on this project.
 
 ---
 
+## 2026-08-26
+
+- Verified GitHub repo, `package.json`, and `index.html` were already renamed to ARTistic Expressions from an earlier session
+- Renamed the codespace display name from the auto-generated "potential space giggle" to "Artistic Expressions"
+- Local codespace folder path (`/workspaces/my-react-site`) intentionally left as-is — it's baked in at codespace creation and only updates on a fresh codespace
+
+---
+
 ## 2026-07-01
 
 - Security review revealed `VITE_GEMINI_API_KEY` was being compiled into the public JS bundle, exposing the API key to any site visitor
