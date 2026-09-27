@@ -28,7 +28,19 @@ const PROMPTS = {
 
 // Overridable so a future model retirement is an env var change, not a redeploy of
 // this file. See .env.example.
-const DEFAULT_MODEL = 'gemini-3.1-flash-image';
+//
+// Lite rather than plain flash: measured against production, lite generates in ~3.0s
+// versus ~8.8s for the same prompts, and the output is indistinguishable at the size this
+// UI displays. Generation is ~95% of the request's wall clock, so this is the single
+// biggest lever on how the page feels.
+const DEFAULT_MODEL = 'gemini-3.1-flash-lite-image';
+
+// The panel renders the image in a roughly square box a few hundred CSS pixels wide, so
+// the model's default 16:9 is both the wrong shape (cropped by object-cover) and more
+// pixels than can ever be seen. Square at 1K is about the smallest that still looks sharp
+// on a high-DPI screen. Both are overridable for tuning without a redeploy.
+const DEFAULT_ASPECT_RATIO = '1:1';
+const DEFAULT_IMAGE_SIZE = '1K';
 
 // Image generation routinely takes 10-20s. Keep this under the function's
 // maxDuration (set in vercel.json) so we return our own 504 rather than letting the
@@ -167,7 +179,13 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         contents: [{ parts: [{ text: PROMPTS[id] }] }],
-        generationConfig: { responseModalities: ['IMAGE'] },
+        generationConfig: {
+          responseModalities: ['IMAGE'],
+          imageConfig: {
+            aspectRatio: process.env.IMAGE_ASPECT_RATIO || DEFAULT_ASPECT_RATIO,
+            imageSize: process.env.IMAGE_SIZE || DEFAULT_IMAGE_SIZE,
+          },
+        },
       }),
       signal: controller.signal,
     });
