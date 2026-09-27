@@ -4,6 +4,40 @@ A running record of decisions, changes, and progress on this project.
 
 ---
 
+## 2026-09-27
+
+- Cloned the repo to a local Windows working copy; fixed the git identity that had been
+  committing 11 prior commits as `Your Name <your-github-email@example.com>`
+- Full security review — secrets, dependencies, headers, PII. Confirmed no literal API key
+  exists in any git blob across the entire history (the 2026-07-01 exposure was via the
+  built bundle on Vercel, never via source control), and the built bundle is clean
+- **Hardened `/api/generate-image`, which was an unauthenticated open proxy.** It accepted
+  an arbitrary `prompt` from any caller, so anyone who found the URL could generate
+  unlimited images on the project's billing account. The endpoint now takes a metaphor
+  `id` and owns the prompt text itself, reducing it to a closed set of six possible
+  upstream calls. Added a best-effort per-IP + global rate limit (in-memory, so it resets
+  on cold starts and is per-instance — a brake on casual abuse, not a hard guarantee),
+  an Origin allowlist, and a 30s upstream timeout
+- Stopped forwarding Google's raw error JSON to the browser — upstream detail (project
+  identifiers, quota state) is now logged server-side and the client gets a generic message
+- Client no longer retries 4xx responses; retrying a 429 five times only added load
+- Moved the six image prompts out of `src/App.jsx` into `api/generate-image.js` so there is
+  a single source of truth and the client copy cannot silently drift
+- Added `vercel.json` with CSP, HSTS, `X-Frame-Options`, `Referrer-Policy`,
+  `Permissions-Policy`, COOP, and `nosniff` — the site previously sent no security headers
+- `npm audit fix`: 8 vulnerabilities (6 high) → 0, all semver-compatible. Two were
+  Windows-specific: a Vite `server.fs.deny` bypass and an NTLMv2 hash disclosure in
+  `launch-editor`
+- Fixed `eslint.config.js`, which lacked Node globals for `api/` — `npm run lint` had been
+  failing on `process is not defined` before any of these changes
+- `.gitignore` covered `*.local` but not `.env`; added `.env`/`.env.*` plus a documented
+  `.env.example`
+- PII review: the app collects nothing — no forms or inputs, no localStorage, no cookies,
+  no analytics, no geolocation. The two staff emails in the footer are intentional public
+  contact info
+
+---
+
 ## 2026-08-26
 
 - Verified GitHub repo, `package.json`, and `index.html` were already renamed to ARTistic Expressions from an earlier session
