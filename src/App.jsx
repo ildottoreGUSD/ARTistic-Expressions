@@ -602,7 +602,7 @@ export default function App() {
       if (result?.image) {
         setGeneratedImages(prev => ({
           ...prev,
-          [id]: `data:image/png;base64,${result.image}`
+          [id]: `data:${result.mimeType || 'image/png'};base64,${result.image}`
         }));
       } else {
         throw new Error("The AI model returned an unexpected response format.");
