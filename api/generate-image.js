@@ -95,6 +95,19 @@ function originAllowed(req) {
   return allowed.includes(origin);
 }
 
+// Generic failure response. When DEBUG_UPSTREAM_ERRORS is set, attach Google's
+// coarse error enum (NOT_FOUND, PERMISSION_DENIED, RESOURCE_EXHAUSTED, ...) and the
+// upstream HTTP status — never the full message, which can carry project identifiers
+// and quota state. Leave the variable unset in normal operation.
+function failure(res, status, upstreamStatus, upstreamEnum) {
+  const error = { message: 'Image generation failed. Please try again later.' };
+  if (process.env.DEBUG_UPSTREAM_ERRORS) {
+    error.upstream = upstreamEnum || null;
+    error.upstreamHttpStatus = upstreamStatus || null;
+  }
+  return res.status(status).json({ error });
+}
+
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
 
@@ -149,24 +162,20 @@ export default async function handler(req, res) {
       // carry project identifiers, quota state and other internals.
       console.error('generate-image: upstream %s %j', response.status, data);
       const status = response.status === 429 ? 429 : 502;
-      return res
-        .status(status)
-        .json({ error: { message: 'Image generation failed. Please try again later.' } });
+      return failure(res, status, response.status, data?.error?.status);
     }
 
     const image = data?.predictions?.[0]?.bytesBase64Encoded;
     if (typeof image !== 'string' || image.length === 0) {
       console.error('generate-image: unexpected upstream shape %j', data);
-      return res.status(502).json({ error: { message: 'Image generation failed. Please try again later.' } });
+      return failure(res, 502, response.status, 'UNEXPECTED_RESPONSE_SHAPE');
     }
 
     return res.status(200).json({ image });
   } catch (err) {
     const aborted = err?.name === 'AbortError';
     console.error('generate-image: %s', aborted ? 'upstream timeout' : err);
-    return res
-      .status(aborted ? 504 : 502)
-      .json({ error: { message: 'Image generation failed. Please try again later.' } });
+    return failure(res, aborted ? 504 : 502, null, aborted ? 'UPSTREAM_TIMEOUT' : 'FETCH_FAILED');
   } finally {
     clearTimeout(timer);
   }
