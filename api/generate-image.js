@@ -18,8 +18,15 @@
 // that way; the four prompts that said "Abstract <thing>" never did. STYLE_SUFFIX below
 // makes the requirement explicit rather than relying on that phrasing alone.
 const PROMPTS = {
+  // "minimalist geometric mountain, high contrast" is the exact vocabulary of mid-century
+  // wall-art prints, and the model kept returning the poster rather than the picture — a
+  // print floating on white with a drop shadow. Two changes fix it: drop "minimalist", and
+  // add the painterly surface language that the five reliable prompts all have and this
+  // one lacked ("textured paint", "brushwork", "thick monumental blocks").
   mountain:
-    'Abstract minimalist composition of a stable mountain, geometric triangles, earthy sienna and deep teal colors, high contrast.',
+    'Abstract mountain built from interlocking geometric planes, earthy sienna and deep ' +
+    'teal, high contrast, painted in oil with visible brushwork and dry-brushed texture, ' +
+    'the slopes running off every edge.',
   anchor:
     'Abstract expressionist composition of a heavy symbolic anchor, deep indigo, bold lines, thick textured brushwork.',
   shield:
@@ -34,9 +41,14 @@ const PROMPTS = {
 
 // Appended to every prompt. The image is displayed edge to edge in a square panel, so a
 // depicted frame, canvas edge or wall shows up as a border inside the UI.
+// Names the specific failure modes seen in practice — poster, print, margin, drop shadow —
+// rather than only the frame-and-wall ones, which the earlier wording covered but which
+// were not what the mountain prompt was actually producing.
 const STYLE_SUFFIX =
-  ' The artwork fills the entire frame, edge to edge. Do not depict a picture frame, ' +
-  'canvas edges, an easel, a wall or a studio — the image is the artwork itself.';
+  ' The artwork fills the entire square frame, edge to edge, with no margin, border or ' +
+  'drop shadow. This is the artwork itself, not a picture of artwork: do not depict a ' +
+  'poster, a print, canvas edges, a picture frame, an easel, a wall or a studio, and do ' +
+  'not place it on any background surface.';
 
 // Overridable so a future model retirement is an env var change, not a redeploy of
 // this file. See .env.example.
