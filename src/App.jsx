@@ -11,35 +11,31 @@ import {
 } from 'lucide-react';
 
 // --- CONSTANTS ---
+// Image prompts for these metaphors live server-side in api/generate-image.js so the
+// endpoint stays a closed set; the `id` below is what identifies one to the server.
 const METAPHORS = [
   { 
     id: 'mountain', label: 'Mountain', icon: <Mountain size={28} />,
-    prompt: "Abstract minimalist painting of a stable mountain, geometric triangles, earthy sienna and deep teal colors, high contrast.",
     description: "Represents a support system that is always there. It stands tall and strong, providing a solid foundation. In abstract art, students might use strong, overlapping triangles, heavy textures, or earthy colors to show reliability and endurance." 
   },
   { 
     id: 'anchor', label: 'Anchor', icon: <Anchor size={28} />,
-    prompt: "Abstract expressionist painting of a heavy symbolic anchor, deep indigo, bold lines, textured paint.",
     description: "Keeps a student grounded, calm, and focused when life gets stormy. Visually, students might use deep blue colors, heavy lines, or shapes placed at the very bottom of their artwork to represent weight and stability." 
   },
   { 
     id: 'shield', label: 'Shield', icon: <Shield size={28} />,
-    prompt: "Abstract golden shield pattern, concentric layers, soft glowing light center, thick protective borders.",
     description: "About safety and guarding against negativity. It represents boundaries and safe spaces. Students might use bright, warm colors, enclosed circles, or thick borders to symbolize feeling wrapped in safety." 
   },
   { 
     id: 'tree', label: 'Tree', icon: <TreePine size={28} />,
-    prompt: "Abstract tree, intricate roots, expansive branches, forest green and mahogany, organic shapes.",
     description: "Roots represent foundational values that ground us; the Trunk represents core strength and closest supporters; Branches represent the growth and connections that spread out as we move forward." 
   },
   { 
     id: 'fortress', label: 'Fortress', icon: <Castle size={28} />,
-    prompt: "Abstract fortress, thick monumental blocks, stone gray and amber highlights, representing unshakeable strength.",
     description: "Represents unshakeable defense and a place of refuge. This metaphor is for a support system that provides a wall of protection against external storms. Visually, students might use large rectangular blocks and gray tones to show monumental durability." 
   },
   { 
     id: 'river', label: 'River', icon: <Waves size={28} />,
-    prompt: "Abstract flowing river, fluid curves in cerulean and silver, winding movement, organic shapes.",
     description: "The Source represents the origin of strength; Flowing Water symbolizes growth over time; the Riverbank represents the support systems that keep us moving forward." 
   }
 ];
@@ -564,29 +560,33 @@ export default function App() {
   const toggleDay = (day) => setActiveDay(activeDay === day ? null : day);
   const toggleMetaphor = (id) => setActiveMetaphor(activeMetaphor === id ? null : id);
 
-  // Helper with Exponential backoff to comply with network reliability rules
-  const fetchWithRetry = async (url, options, retries = 5) => {
+  // Retry with exponential backoff for transient failures only. 4xx responses mean
+  // the request itself was rejected (bad id, rate limited, forbidden) — retrying
+  // those just adds load, so we surface them immediately.
+  const fetchWithRetry = async (url, options, retries = 3) => {
     let delay = 1000;
     for (let i = 0; i < retries; i++) {
       try {
         const response = await fetch(url, options);
-        // Safely parse Google's detailed error JSON to see exactly what went wrong
-        const data = await response.json().catch(() => null); 
-        
+        const data = await response.json().catch(() => null);
+
         if (!response.ok) {
-          const errorMessage = data?.error?.message || `HTTP ${response.status}`;
-          throw new Error(errorMessage);
+          const error = new Error(data?.error?.message || `HTTP ${response.status}`);
+          error.status = response.status;
+          throw error;
         }
         return data;
       } catch (error) {
-        if (i === retries - 1) throw error;
+        const isClientError = error.status >= 400 && error.status < 500;
+        if (isClientError || i === retries - 1) throw error;
         await new Promise(res => setTimeout(res, delay));
         delay *= 2;
       }
     }
   };
 
-  const fetchImage = async (id, promptText) => {
+  // The server owns the prompt text; we only name which metaphor to render.
+  const fetchImage = async (id) => {
     setLoadingImage(true);
     setError(null);
 
@@ -594,24 +594,24 @@ export default function App() {
       const options = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: promptText }),
+        body: JSON.stringify({ id }),
       };
 
       const result = await fetchWithRetry('/api/generate-image', options);
-      
-      if (result?.predictions?.[0]?.bytesBase64Encoded) {
-        setGeneratedImages(prev => ({ 
-          ...prev, 
-          [id]: `data:image/png;base64,${result.predictions[0].bytesBase64Encoded}` 
+
+      if (result?.image) {
+        setGeneratedImages(prev => ({
+          ...prev,
+          [id]: `data:image/png;base64,${result.image}`
         }));
       } else {
         throw new Error("The AI model returned an unexpected response format.");
       }
-    } catch (err) { 
+    } catch (err) {
       console.error("Image generation error:", err);
-      setError(`Error: ${err.message}`); 
-    } finally { 
-      setLoadingImage(false); 
+      setError(`Error: ${err.message}`);
+    } finally {
+      setLoadingImage(false);
     }
   };
 
@@ -954,7 +954,7 @@ export default function App() {
                           </div>
                         )}
                         
-                        <button onClick={() => fetchImage(activeMetaphor, METAPHORS.find(m => m.id === activeMetaphor).prompt)} disabled={loadingImage} className="flex items-center justify-center gap-4 bg-slate-900 text-white w-full py-5 rounded-2xl font-bold shadow-xl hover:bg-teal-700 transition disabled:opacity-50">
+                        <button onClick={() => fetchImage(activeMetaphor)} disabled={loadingImage} className="flex items-center justify-center gap-4 bg-slate-900 text-white w-full py-5 rounded-2xl font-bold shadow-xl hover:bg-teal-700 transition disabled:opacity-50">
                           {loadingImage ? <Loader2 className="animate-spin" size={24} /> : <RefreshCw size={24} />}
                           {generatedImages[activeMetaphor] ? "Regenerate Visual" : "Generate Visual Example"}
                         </button>
