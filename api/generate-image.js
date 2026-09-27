@@ -11,11 +11,17 @@
 // the Gemini image models, which use `:generateContent` and return the bytes inline
 // rather than under `predictions`.
 
+// Note the deliberate absence of the phrase "painting of". The mountain and anchor prompts
+// used it, and the model consistently read it as an instruction to depict a painting as an
+// *object* — returning photographs of framed canvases hanging on walls or leaning in a
+// studio, complete with wall texture and floor. Every generation of those two came back
+// that way; the four prompts that said "Abstract <thing>" never did. STYLE_SUFFIX below
+// makes the requirement explicit rather than relying on that phrasing alone.
 const PROMPTS = {
   mountain:
-    'Abstract minimalist painting of a stable mountain, geometric triangles, earthy sienna and deep teal colors, high contrast.',
+    'Abstract minimalist composition of a stable mountain, geometric triangles, earthy sienna and deep teal colors, high contrast.',
   anchor:
-    'Abstract expressionist painting of a heavy symbolic anchor, deep indigo, bold lines, textured paint.',
+    'Abstract expressionist composition of a heavy symbolic anchor, deep indigo, bold lines, thick textured brushwork.',
   shield:
     'Abstract golden shield pattern, concentric layers, soft glowing light center, thick protective borders.',
   tree:
@@ -25,6 +31,12 @@ const PROMPTS = {
   river:
     'Abstract flowing river, fluid curves in cerulean and silver, winding movement, organic shapes.',
 };
+
+// Appended to every prompt. The image is displayed edge to edge in a square panel, so a
+// depicted frame, canvas edge or wall shows up as a border inside the UI.
+const STYLE_SUFFIX =
+  ' The artwork fills the entire frame, edge to edge. Do not depict a picture frame, ' +
+  'canvas edges, an easel, a wall or a studio — the image is the artwork itself.';
 
 // Overridable so a future model retirement is an env var change, not a redeploy of
 // this file. See .env.example.
@@ -178,7 +190,7 @@ export default async function handler(req, res) {
         'x-goog-api-key': apiKey,
       },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: PROMPTS[id] }] }],
+        contents: [{ parts: [{ text: PROMPTS[id] + STYLE_SUFFIX }] }],
         generationConfig: {
           responseModalities: ['IMAGE'],
           imageConfig: {
