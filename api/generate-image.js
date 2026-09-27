@@ -134,7 +134,9 @@ export default async function handler(req, res) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        instances: { prompt: PROMPTS[id] },
+        // `instances` is an array in the predict API. It was an object here
+        // previously, which Google rejects with 400 INVALID_ARGUMENT.
+        instances: [{ prompt: PROMPTS[id] }],
         parameters: { sampleCount: 1 },
       }),
       signal: controller.signal,
