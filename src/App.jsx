@@ -521,7 +521,13 @@ export default function App() {
   const [activeFaq, setActiveFaq] = useState(null); 
   const [activePromo, setActivePromo] = useState(null);
   
-  const [generatedImages, setGeneratedImages] = useState({});
+  // Seeded with the pre-generated images in public/metaphors, so selecting a metaphor shows
+  // artwork instantly instead of waiting ~4s on a live generation — and costs nothing per
+  // view. "Regenerate Visual" still calls the API for a fresh one, which then replaces the
+  // static image for the rest of the session.
+  const [generatedImages, setGeneratedImages] = useState(
+    Object.fromEntries(METAPHORS.map((m) => [m.id, `/metaphors/${m.id}.jpg`]))
+  );
   const [loadingImage, setLoadingImage] = useState(false);
   const [error, setError] = useState(null);
 

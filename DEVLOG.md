@@ -98,6 +98,25 @@ A running record of decisions, changes, and progress on this project.
   returning raw bytes instead of base64 (−25%, needs a client change), or pre-generating
   the six images as static assets (instant and free per view, but the images stop being
   freshly generated). Left as an open decision rather than chosen unilaterally
+- **Chose pre-generation.** The six metaphor images now ship as static assets in
+  `public/metaphors/`, seeded into component state on mount, so selecting a metaphor is
+  instant and costs nothing per view — no API call, no per-view billing, and the page keeps
+  working even if the model is retired again. "Regenerate Visual" still calls the live API
+  and replaces the static image for the rest of the session, so the generative feature is
+  intact. Cache headers set to one day plus a week of stale-while-revalidate, since Vercel
+  serves `public/` with `must-revalidate` by default and that costs a round trip per view.
+  They were generated through the production endpoint rather than a local script, so no API
+  key ever needed to exist on a developer machine
+- **Found a real content bug while reviewing those images.** The `mountain` and `anchor`
+  prompts read `Abstract ... painting of a ...`, and the model took "painting" as a noun to
+  depict: it returned *photographs of framed canvases on walls and leaning in studios*,
+  wall texture and floor included. Every generation of those two came back that way; the
+  four prompts phrased `Abstract <thing>` never did. This affected the live Regenerate path
+  too, not just the static defaults. Reworded both to "composition" and appended an
+  explicit style suffix to all six ("fills the entire frame… the image is the artwork
+  itself"). Verified across repeat generations afterwards — the framing is gone. Note there
+  is still run-to-run variance: one post-fix `mountain` came back as a poster floating on
+  white, and two immediately after it were clean, so the committed set was picked by eye
 
 ---
 
