@@ -162,7 +162,18 @@ half-finished. Open items, none urgent:
   bytes instead of base64 (−25%, needs a client change)
 - **`gh` subcommands still follow the active account**, which drifts to `emilpulse-code`.
   Git itself is pinned and unaffected; only `gh pr create` and friends need
-  `gh auth switch --user ildottoreGUSD`
+  `gh auth switch --user ildottoreGUSD`.
+
+  Investigated this properly rather than leaving it as folklore. The drift is **not caused
+  by ordinary use**: with the wrong account deliberately active, neither git operations
+  through the pinned helper, nor `gh auth token --user`, nor `gh repo view` changed it.
+  There are no `GH_*` environment variables, no PowerShell profile, no Startup items and no
+  registry Run entries referencing gh on this machine. The setting lives in
+  `%APPDATA%\GitHub CLI\hosts.yml` under `user:` — tokens are in the OS keyring, not in
+  that file. Since it has only ever been observed already-wrong at the *start* of a session,
+  whatever flips it happens between sessions; the cause is still unidentified. Deliberately
+  not building machinery for it: git is immune, and the gh case fails loudly with a 404 and
+  takes one command to correct. Revisit only if it starts costing real time
 
 ---
 
