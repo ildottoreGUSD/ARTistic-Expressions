@@ -1,9 +1,15 @@
-// Server-side proxy for Imagen generation.
+// Server-side proxy for Gemini image generation.
 //
 // The client sends only a metaphor id; the prompt text lives here. That keeps the
 // endpoint a closed set of six possible upstream calls instead of an open-ended
 // text-to-image service, so a caller who finds the URL cannot generate arbitrary
 // images on the project's billing account.
+//
+// This used to call Imagen (`imagen-4.0-generate-001:predict`). Google shut every
+// Imagen model down in the Gemini API on 2026-08-17; those calls now 404 with
+// NOT_FOUND no matter what the key or billing looks like. Image generation moved to
+// the Gemini image models, which use `:generateContent` and return the bytes inline
+// rather than under `predictions`.
 
 const PROMPTS = {
   mountain:
@@ -20,7 +26,14 @@ const PROMPTS = {
     'Abstract flowing river, fluid curves in cerulean and silver, winding movement, organic shapes.',
 };
 
-const UPSTREAM_TIMEOUT_MS = 30000;
+// Overridable so a future model retirement is an env var change, not a redeploy of
+// this file. See .env.example.
+const DEFAULT_MODEL = 'gemini-3.1-flash-image';
+
+// Image generation routinely takes 10-20s. Keep this under the function's
+// maxDuration (set in vercel.json) so we return our own 504 rather than letting the
+// platform kill the invocation.
+const UPSTREAM_TIMEOUT_MS = 45000;
 
 // Best-effort rate limiting. Module scope survives between invocations on a warm
 // serverless instance, but each instance keeps its own counters and cold starts
@@ -138,19 +151,23 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: { message: 'Image generation is unavailable.' } });
   }
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`;
+  const model = process.env.IMAGE_MODEL || DEFAULT_MODEL;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), UPSTREAM_TIMEOUT_MS);
 
   try {
     const response = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        // Header auth rather than `?key=`, so the key cannot leak through request
+        // URLs in logs, traces or error reports.
+        'x-goog-api-key': apiKey,
+      },
       body: JSON.stringify({
-        // `instances` is an array in the predict API. It was an object here
-        // previously, which Google rejects with 400 INVALID_ARGUMENT.
-        instances: [{ prompt: PROMPTS[id] }],
-        parameters: { sampleCount: 1 },
+        contents: [{ parts: [{ text: PROMPTS[id] }] }],
+        generationConfig: { responseModalities: ['IMAGE'] },
       }),
       signal: controller.signal,
     });
@@ -165,13 +182,32 @@ export default async function handler(req, res) {
       return failure(res, status, response.status, data?.error?.status);
     }
 
-    const image = data?.predictions?.[0]?.bytesBase64Encoded;
+    const candidate = data?.candidates?.[0];
+
+    // A safety or recitation block comes back as a 200 with no image part. Name it
+    // distinctly — retrying an identical prompt will not help.
+    const finish = candidate?.finishReason;
+    if (finish && finish !== 'STOP') {
+      console.error('generate-image: upstream finishReason %s', finish);
+      return failure(res, 502, response.status, `FINISH_${finish}`);
+    }
+
+    const part = candidate?.content?.parts?.find((p) => p?.inlineData?.data);
+    const image = part?.inlineData?.data;
     if (typeof image !== 'string' || image.length === 0) {
       console.error('generate-image: unexpected upstream shape %j', data);
       return failure(res, 502, response.status, 'UNEXPECTED_RESPONSE_SHAPE');
     }
 
-    return res.status(200).json({ image });
+    // Pass the mime type through instead of letting the client assume PNG; these
+    // models can return JPEG or WebP depending on the model and request.
+    const mimeType = part.inlineData.mimeType || 'image/png';
+    if (!/^image\/[\w.+-]+$/.test(mimeType)) {
+      console.error('generate-image: refusing non-image mime type %j', mimeType);
+      return failure(res, 502, response.status, 'UNEXPECTED_RESPONSE_SHAPE');
+    }
+
+    return res.status(200).json({ image, mimeType });
   } catch (err) {
     const aborted = err?.name === 'AbortError';
     console.error('generate-image: %s', aborted ? 'upstream timeout' : err);
