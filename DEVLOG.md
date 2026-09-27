@@ -141,6 +141,29 @@ A running record of decisions, changes, and progress on this project.
   which were already painterly. The static default was regenerated to match, so it no
   longer jumps styles when a teacher hits Regenerate
 
+### Where this was paused (2026-09-27)
+
+Everything above is merged, deployed and verified on `ae27.gusddev.app`. Nothing is
+half-finished. Open items, none urgent:
+
+- **`artisticexpressions.gusddev.app` is still attached** to the Vercel project by choice.
+  If it is ever retired: delete the Cloudflare CNAME **first**, confirm it stops resolving,
+  *then* detach from Vercel — the reverse order leaves a dangling record on a district
+  subdomain that a third party could claim. That zone is in a different Cloudflare account
+  from the other 25, so it needs the district login
+- **`ae26.vercel.app` was released** and can now be claimed by anyone. Treat it as gone, not
+  parked
+- **The full-bleed check is not in the repo.** It lives in a scratchpad and was used to
+  verify the prompt work — worth adding under `scripts/` if this kind of prompt regression
+  comes up again, though it is Windows PowerShell in an otherwise JS project
+- **Payload is still ~1.2MB per live regeneration.** Irrelevant for the default view now
+  that the six images are static, and only paid when a teacher hits Regenerate. If it ever
+  matters, the untried levers are a 512px render (softer on high-DPI) or returning raw
+  bytes instead of base64 (−25%, needs a client change)
+- **`gh` subcommands still follow the active account**, which drifts to `emilpulse-code`.
+  Git itself is pinned and unaffected; only `gh pr create` and friends need
+  `gh auth switch --user ildottoreGUSD`
+
 ---
 
 ## 2026-08-26
