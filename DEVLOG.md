@@ -35,6 +35,30 @@ A running record of decisions, changes, and progress on this project.
 - PII review: the app collects nothing — no forms or inputs, no localStorage, no cookies,
   no analytics, no geolocation. The two staff emails in the footer are intentional public
   contact info
+- Added the `ae27.gusddev.app` subdomain: Vercel domain on Production (verified), Cloudflare
+  CNAME → `0a0bbfdd4fd91f3b.vercel-dns-017.com` set to **DNS-only** (proxying it would break
+  Vercel's cert issuance). `ALLOWED_ORIGIN` updated to cover all three origins; confirmed the
+  new origin passes the check and an unlisted origin gets a 403. The old domains were left in
+  place rather than removed or redirected
+- **Found and fixed the real cause of the image-generation 502s.** Google shut down every
+  Imagen model in the Gemini API on 2026-08-17, so `imagen-4.0-generate-001:predict` returns
+  404 `NOT_FOUND` regardless of key or billing. Migrated to `gemini-3.1-flash-image` via
+  `:generateContent`, where the bytes arrive inline under
+  `candidates[].content.parts[].inlineData` instead of under `predictions[]`. Verified in
+  production: all six metaphors return HTTP 200 with real image data
+- Worth recording how that was found, because the first two attempts were guesses. The
+  `instances`-as-array change was correct per the predict API spec but could never have
+  fixed a retired model. What actually resolved it was the `DEBUG_UPSTREAM_ERRORS` flag,
+  which surfaced Google's error enum and named the cause in one request. **Read the upstream
+  error before changing the request.**
+- Follow-ons from that migration: the model name is now overridable via `IMAGE_MODEL` so the
+  next retirement is an env var change rather than a code change; upstream auth moved from
+  `?key=` to the `x-goog-api-key` header so the key stays out of request URLs; a non-`STOP`
+  `finishReason` (safety/recitation block, which arrives as a 200 with no image part) is
+  reported distinctly instead of as a generic bad-shape error; the upstream mime type is
+  passed through to the client, which had been hardcoding `image/png` — the new model
+  actually returns JPEG; and `maxDuration` is set to 60s, since generation takes 10–20s and
+  the platform default would have killed the invocation before the upstream timeout fired
 
 ---
 
