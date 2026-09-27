@@ -59,6 +59,30 @@ A running record of decisions, changes, and progress on this project.
   passed through to the client, which had been hardcoding `image/png` — the new model
   actually returns JPEG; and `maxDuration` is set to 60s, since generation takes 10–20s and
   the platform default would have killed the invocation before the upstream timeout fired
+- Made `ae27.gusddev.app` the canonical home. Removed `ae26.vercel.app` from the project
+  (note: a released `*.vercel.app` name can be claimed by anyone afterwards, so it should be
+  considered gone for good rather than parked). Trimmed `ALLOWED_ORIGIN` to the two origins
+  that still exist, and added a `rel="canonical"` tag pointing at `ae27.gusddev.app`
+- **`artisticexpressions.gusddev.app` was deliberately left attached.** Its CNAME lives in a
+  Cloudflare account separate from the one holding the other 25 zones, and detaching the
+  domain from Vercel while that record still points at `cname.vercel-dns.com` would leave a
+  dangling CNAME on a district subdomain — which anyone could then claim by adding that
+  hostname to their own Vercel project. Correct order if it is ever retired: **delete the
+  Cloudflare record first, confirm it stops resolving, then detach from Vercel.** The
+  canonical tag means it no longer competes with `ae27` in the meantime
+- **Fixed the `gh` account problem durably** rather than switching accounts by hand each
+  session. The cause was that `credential.https://github.com.helper` was
+  `!gh auth git-credential`, which serves whichever account `gh` has *active* — and that
+  kept reverting to `emilpulse-code`, producing a 404 on push that reads like a missing
+  repo rather than an identity mismatch. (The earlier guess that Git Credential Manager was
+  responsible was wrong; the global config resets the helper list for `github.com`, so GCM
+  never enters the picture there.) Replaced it with a repo-local helper,
+  `~/.git-credential-github-ildottoregusd.sh`, which calls
+  `gh auth token --user ildottoreGUSD` and so is independent of the active account.
+  Verified by switching `gh` to `emilpulse-code` and confirming both an authenticated read
+  and `git push --dry-run` against the private repo still succeed. Scoped per-repo so the
+  other account's repos are unaffected — note that `gh` subcommands themselves
+  (`gh pr create`, etc.) still follow the active account
 
 ---
 
