@@ -83,6 +83,21 @@ A running record of decisions, changes, and progress on this project.
   and `git push --dry-run` against the private repo still succeed. Scoped per-repo so the
   other account's repos are unaffected — note that `gh` subcommands themselves
   (`gh pr create`, etc.) still follow the active account
+- **Image generation felt sluggish; measured it before touching anything.** Baseline on
+  production was ~9.2s total per image, of which ~8.8s was time-to-first-byte and only
+  ~0.4s was transferring the payload on a fast connection — so ~95% of the wall clock was
+  the model, not the network. Switched the default to `gemini-3.1-flash-lite-image`
+  (~3.0s vs ~8.8s across three runs, output indistinguishable at the size this UI shows)
+  and set `imageConfig` to 1:1 at 1K, since the panel is a roughly square box a few hundred
+  CSS pixels wide and the model's default 16:9 was being cropped by `object-cover`.
+  Result: ~4.0s end-to-end, 1024×1024, ~900KB JPEG (~1.2MB on the wire after base64).
+  Roughly 2.3× faster, ~20% smaller, and no longer spending bytes on cropped pixels
+- Remaining cost is the ~1.2MB payload, which is invisible on a fast connection and roughly
+  5s on typical school wifi. Cutting it further means changing behaviour rather than
+  configuration — a smaller render (softer on high-DPI screens, and this is an art site),
+  returning raw bytes instead of base64 (−25%, needs a client change), or pre-generating
+  the six images as static assets (instant and free per view, but the images stop being
+  freshly generated). Left as an open decision rather than chosen unilaterally
 
 ---
 
