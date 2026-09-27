@@ -117,6 +117,29 @@ A running record of decisions, changes, and progress on this project.
   itself"). Verified across repeat generations afterwards — the framing is gone. Note there
   is still run-to-run variance: one post-fix `mountain` came back as a poster floating on
   white, and two immediately after it were clean, so the committed set was picked by eye
+- **Closed out that variance.** `mountain` was the only prompt still drifting, and it had
+  two causes specific to it. "Abstract minimalist … geometric triangles … high contrast" is
+  the exact vocabulary of mid-century wall-art prints, so the model had every reason to
+  render a print; and unlike the five prompts that never drifted, it carried no painterly
+  surface language at all (the others say "textured paint", "bold lines", "thick monumental
+  blocks", "organic shapes"). Dropped "minimalist", described the paint surface, and asked
+  for slopes running off every edge. The shared style suffix now also names the failure
+  modes actually observed — poster, print, margin, drop shadow — rather than only the
+  frame-and-wall ones it already covered but which were never what mountain produced
+- Verified by measurement rather than by eye: **10 consecutive regenerations, 10 full-bleed,
+  none flagged.** The check scores each image on whether its border is uniform *and* the
+  same on all four sides. The first version of that check used the spread of luminance
+  around the whole border ring and produced a false positive — a minimalist composition
+  with a flat sky over flat ground has a genuinely low-variance border while still bleeding
+  off every edge. Requiring the four edges to also resemble each other separates "flat by
+  style" from "flat because it is paper". Validated against a synthetic positive control
+  (artwork pasted inset on a white ground), which scores 0/0 against a worst real image of
+  18/33. Re-ran the other five prompts afterwards since the suffix change was global — all
+  five still full-bleed
+- Side effect worth knowing: mountain's style moved from flat geometric to oil-painted,
+  because the flat-graphic vocabulary *was* the trigger. It now matches the other five,
+  which were already painterly. The static default was regenerated to match, so it no
+  longer jumps styles when a teacher hits Regenerate
 
 ---
 
