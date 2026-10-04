@@ -93,12 +93,39 @@ A running record of decisions, changes, and progress on this project.
   mojibake (`U+00E2 U+20AC U+201D` — UTF-8 bytes read as Latin-1). HTML entities are
   charset-independent, so `&mdash;` and `&ndash;` are the safe form in artifact markup;
   the rest of the page was already entity-encoded and rendered correctly
+- Built and published the staff ballot as a Google Form, owned by `eahangarzadeh@gusd.net`,
+  responders restricted to Glendale Unified, verified email collected, one response per
+  person, response editing allowed so a teacher can change their vote. Five questions: the
+  ranking, then why that first choice, what would make it hard to run, a theme we did not
+  list, and school site. Only the ranking matters for the result; the rest is optional
+  - edit: `docs.google.com/forms/d/1YoMxfQuKz5yqVFkCtBz45XWZ_4KGQ5jB3VRz9ydFluM/edit`
+  - responder: `docs.google.com/forms/d/e/1FAIpQLSctc0hXCZKRA4diYfhEJ3gqcuCFWeEmAaQzJRkcPQh7zfQG6w/viewform`
+- **Google Forms has no ranking question type.** The ballot is a 6×3 multiple-choice grid —
+  themes as rows, "1st / 2nd / 3rd choice" as columns — with **Limit to one response per
+  column** enabled. One radio per row stops a theme being both 1st and 2nd; the column limit
+  stops two themes sharing a rank. Verified in preview: selecting a second "1st choice" is
+  refused with "Please don't select more than one response per column"
+- **That grid cannot be made required, and the reason is worth recording** so nobody turns
+  the toggle on later. The only required option for a grid is *Require a response in each
+  row*. With six rows, three columns and one response per column, at most three rows can
+  ever be filled, so requiring all six makes the form unsatisfiable — it would be impossible
+  to submit. It stays off, which means an empty ballot is technically submittable
+- **Creating a Google Doc/Form from a URL without a `/u/N/` prefix does not use the account
+  you think it does.** `docs.google.com/forms/create` resolved to the personal
+  `eahangarzadeh@gmail.com` session even though `docs.google.com/forms/u/0/` was the GUSD
+  Workspace account and showed the GUSD chip and the VAPA forms. The first build of this
+  ballot landed in the wrong account, where the responder dropdown offers only "Anyone with
+  the link" — the domain restriction simply does not exist outside a Workspace account, so
+  the mistake is invisible until you go looking for the setting. **Use the `/u/N/create`
+  form of the URL, and confirm the owner in the share dialog before building anything.**
+  Four Google accounts are signed in on this machine, which is what makes this easy to hit
 
 ### Open items (2026-10-04)
 
-- **The gallery page says "rank your top three in the form."** If the Google Form asks for
-  something else, that line needs changing and the artifact republishing — same URL, so no
-  need to redistribute the link
+- **The gallery page's "rank your top three in the form" line is now correct** — the Form
+  does ask for a top three. Note the coupling in the other direction: the Form description
+  embeds the artifact URL, so if that page is ever republished to a *different* URL the Form
+  description needs editing too
 - **The six theme images are not in the repo.** They live outside `public/` deliberately
   (ballot material, not unit assets). If a theme wins and its art becomes part of the unit,
   it needs the full three-place treatment: a `METAPHORS`-style entry, a file under
