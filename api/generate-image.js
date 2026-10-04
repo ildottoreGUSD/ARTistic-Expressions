@@ -1,9 +1,10 @@
 // Server-side proxy for Gemini image generation.
 //
-// The client sends only a metaphor id; the prompt text lives here. That keeps the
-// endpoint a closed set of six possible upstream calls instead of an open-ended
-// text-to-image service, so a caller who finds the URL cannot generate arbitrary
-// images on the project's billing account.
+// The client sends only an id; the prompt text lives here. That keeps the endpoint a
+// closed set of known upstream calls instead of an open-ended text-to-image service, so
+// a caller who finds the URL cannot generate arbitrary images on the project's billing
+// account. There are two id families: the six unit metaphors in PROMPTS, and the six
+// 2026-27 candidate themes in THEME_PROMPTS.
 //
 // This used to call Imagen (`imagen-4.0-generate-001:predict`). Google shut every
 // Imagen model down in the Gemini API on 2026-08-17; those calls now 404 with
@@ -38,6 +39,45 @@ const PROMPTS = {
   river:
     'Abstract flowing river, fluid curves in cerulean and silver, winding movement, organic shapes.',
 };
+
+// Candidate themes for the 2026-27 unit, used to illustrate the staff ballot. Kept in a
+// separate map from PROMPTS so the six metaphors that the live unit depends on stay
+// visually and editorially untouched, but merged into ALL_PROMPTS below so the endpoint
+// remains a closed set — twelve known upstream calls, never an arbitrary one.
+//
+// Each of these names something that STYLE_SUFFIX would otherwise be fighting: a map, a
+// museum, a repaired bowl, a monument are all *objects*, and asking for them directly
+// invites the same failure the mountain and anchor prompts hit — a photograph of the thing
+// sitting on a surface. So each prompt describes the forms abstractly ("plinth-like
+// blocks", "suggesting invented territory") and never names the object itself.
+const THEME_PROMPTS = {
+  'theme-invisible-systems':
+    'Abstract composition of overlapping translucent layers crossed by branching ' +
+    'connective currents, cool violet and pale cyan over warm ochre, glowing where the ' +
+    'layers overlap, painted in thin washed glazes with visible brushwork.',
+  'theme-cartography':
+    'Abstract composition of contour shapes and winding boundary forms suggesting ' +
+    'invented territory, warm sepia and muted jade with coral accents, small painted ' +
+    'symbols scattered across it, thick gouache texture and bold outlines.',
+  'theme-museum-of-us':
+    'Abstract composition of layered vessel and relic forms, carved facets and worn ' +
+    'edges, terracotta and bone white with oxidized copper green, thick impasto paint ' +
+    'and incised marks.',
+  'theme-seeing-music':
+    'Abstract composition of rhythmic marks, sweeping arcs and staccato bursts rising ' +
+    'across the surface, saturated magenta, cobalt and chrome yellow, bold gestural ' +
+    'brushstrokes over layered textured paint.',
+  'theme-beautiful-mending':
+    'Abstract composition of fractured planes rejoined by thick radiant gold seams, ' +
+    'deep charcoal and slate blue fields, the gold veins branching off every edge, ' +
+    'heavy textured paint and visible brushwork.',
+  'theme-monuments':
+    'Abstract composition of stacked plinth-like forms rising in bold vertical tiers, ' +
+    'weathered limestone gray with warm bronze and dusty rose, thick dry-brushed ' +
+    'texture filling the surface edge to edge.',
+};
+
+const ALL_PROMPTS = { ...PROMPTS, ...THEME_PROMPTS };
 
 // Appended to every prompt. The image is displayed edge to edge in a square panel, so a
 // depicted frame, canvas edge or wall shows up as a border inside the UI.
@@ -177,7 +217,7 @@ export default async function handler(req, res) {
   }
 
   const { id } = req.body || {};
-  if (typeof id !== 'string' || !Object.prototype.hasOwnProperty.call(PROMPTS, id)) {
+  if (typeof id !== 'string' || !Object.prototype.hasOwnProperty.call(ALL_PROMPTS, id)) {
     return res.status(400).json({ error: { message: 'Unknown image id' } });
   }
 
@@ -202,7 +242,7 @@ export default async function handler(req, res) {
         'x-goog-api-key': apiKey,
       },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: PROMPTS[id] + STYLE_SUFFIX }] }],
+        contents: [{ parts: [{ text: ALL_PROMPTS[id] + STYLE_SUFFIX }] }],
         generationConfig: {
           responseModalities: ['IMAGE'],
           imageConfig: {
