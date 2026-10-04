@@ -59,10 +59,23 @@ const THEME_PROMPTS = {
     'Abstract composition of contour shapes and winding boundary forms suggesting ' +
     'invented territory, warm sepia and muted jade with coral accents, small painted ' +
     'symbols scattered across it, thick gouache texture and bold outlines.',
+  // First version asked for "carved facets", "worn edges", "incised marks" and "thick
+  // impasto paint". Every one of those describes a *physical surface*, so the model built
+  // a sculptural relief panel and then did what it does with any object: photographed it,
+  // outdoors, held up against trees and grass with a thumb in the shot. STYLE_SUFFIX did
+  // not save it — the suffix forbids a frame, a wall and a background surface, but this
+  // was none of those; the artwork had simply become a thing that exists somewhere.
+  //
+  // Note the border check scores this failure as full-bleed, because the foliage reaches
+  // every edge. The check only detects artwork inset on a plain ground. This mode has to
+  // be caught by eye.
+  //
+  // Fix: flatten the vocabulary. "Silhouettes", "flat painted shapes" and "outlines"
+  // describe a picture rather than an object.
   'theme-museum-of-us':
-    'Abstract composition of layered vessel and relic forms, carved facets and worn ' +
-    'edges, terracotta and bone white with oxidized copper green, thick impasto paint ' +
-    'and incised marks.',
+    'Abstract composition of overlapping vessel and relic silhouettes, flat painted ' +
+    'shapes interlocking across the whole surface, terracotta and bone white with ' +
+    'oxidized copper green, bold outlines and dry-brushed paint texture.',
   'theme-seeing-music':
     'Abstract composition of rhythmic marks, sweeping arcs and staccato bursts rising ' +
     'across the surface, saturated magenta, cobalt and chrome yellow, bold gestural ' +
