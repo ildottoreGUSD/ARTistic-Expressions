@@ -73,6 +73,42 @@ A running record of decisions, changes, and progress on this project.
   POSIX shell (or straight into `.git/config`). Verify with
   `printf 'protocol=https\nhost=github.com\n\n' | git credential fill`, which names the
   account git will actually use
+- Published the six candidates as a gallery page for staff to read before voting, with the
+  art inlined as data URIs since the artifact CSP blocks every external host. Downscaled to
+  560px first: six 1K JPEGs inline would be roughly 7 MB of base64, versus 679 KB at the
+  size the page actually renders them. The full-resolution originals stay separate, for the
+  Form's per-question images
+- Shared it link-public (view-only). Artifacts offer only "only people invited" or "anyone
+  with the link" — there is no domain restriction, so a `gusd.net`-only share is not
+  available, and invited-only would require every teacher to have a Claude account. Revoke
+  from the same menu by setting access back to invited-only
+- **You cannot verify an artifact's share state over HTTP, and the check that looks like it
+  works is actively misleading.** An anonymous request to the shared URL returns 200 — but
+  so does an anonymous request to a URL with a UUID that does not exist, byte for byte the
+  same 26,500-byte app shell. Access is enforced client-side after the JS loads, so status
+  code and response length carry no signal at all. The only real check is opening the link
+  in a signed-out or incognito window. Worth knowing before reporting "verified public" off
+  a 200
+- Minor, but it cost a republish: a literal em dash in the artifact's `<title>` came back
+  mojibake (`U+00E2 U+20AC U+201D` — UTF-8 bytes read as Latin-1). HTML entities are
+  charset-independent, so `&mdash;` and `&ndash;` are the safe form in artifact markup;
+  the rest of the page was already entity-encoded and rendered correctly
+
+### Open items (2026-10-04)
+
+- **The gallery page says "rank your top three in the form."** If the Google Form asks for
+  something else, that line needs changing and the artifact republishing — same URL, so no
+  need to redistribute the link
+- **The six theme images are not in the repo.** They live outside `public/` deliberately
+  (ballot material, not unit assets). If a theme wins and its art becomes part of the unit,
+  it needs the full three-place treatment: a `METAPHORS`-style entry, a file under
+  `public/`, and the prompt already in `THEME_PROMPTS`
+- **`THEME_PROMPTS` stays in the endpoint after the vote is over.** Five of the six become
+  dead weight once a theme is chosen. Prune them then, rather than leaving twelve ids live
+  indefinitely
+- **The border check is still not in `scripts/`**, and now has a documented blind spot
+  (artwork-as-object-in-a-scene). If it ever gets committed, the limitation needs to go in
+  the file header or it will be trusted further than it deserves
 
 ---
 
