@@ -4,6 +4,78 @@ A running record of decisions, changes, and progress on this project.
 
 ---
 
+## 2026-10-04
+
+- Reviewed the whole app ahead of planning the 2026-27 unit. Findings worth keeping: the
+  unit's identity is hardcoded in roughly 500 places (160 `teal-*` and 362 `slate-*` literal
+  utility strings, `"ARTistic Expressions 2026"` in three, `"What Gives Me Strength?"` in
+  two, both again inside the `PROMO_CONTENT` `copyText` blocks), so **extracting a `UNIT`
+  constant beside `METAPHORS` is the first step of any reskin, not an afterthought**. Also:
+  `animate-fade-in` is referenced 10 times and defined nowhere; `tailwind.config.js` is dead
+  under v4 since `index.css` has no `@config`; `CopyButton` still uses the deprecated
+  `document.execCommand('copy')`; and `src/App.css`, `src/assets/*` and `public/icons.svg`
+  are unreferenced Vite starter cruft
+- Theme voting for 2026-27 will happen in a Google Form rather than in the app, so the
+  planned in-app ballot (Google Sign-In restricted to `gusd.net`, Upstash for storage) was
+  dropped before any of it was written. Recording the two findings from planning it anyway,
+  because they will resurface if the app ever does need auth: the site's CSP blocks Google
+  Identity Services on all four of `script-src`, `connect-src`, `frame-src` and `style-src`,
+  and the global `Cross-Origin-Opener-Policy: same-origin` breaks the GSI popup — it needs
+  `same-origin-allow-popups`. Both are per-route overridable in `vercel.json`
+- Added six 2026-27 candidate theme prompts to `api/generate-image.js` in a separate
+  `THEME_PROMPTS` map, merged into `ALL_PROMPTS` for the id lookup. The split keeps the six
+  metaphors the live unit depends on editorially untouched while preserving the closed-set
+  property — the endpoint still makes one of twelve known upstream calls, never an arbitrary
+  one
+- **A preview deployment cannot be used to generate images, and the reason is worth writing
+  down.** Vercel Authentication is set to Standard Protection, which blocks *function
+  invocation* on previews while still serving static GETs from the edge. That produces a
+  confusing signature: `GET /` returns the real site, `GET /api/generate-image` returns
+  `index.html` (the function never runs, so it falls through to the SPA), and every POST
+  returns a bare 401 with an empty body. Compare against production, where the same two
+  requests correctly return 405 and 400. Separately, **both `GEMINI_API_KEY` and
+  `ALLOWED_ORIGIN` are scoped to Production only**, so even with the protection lifted a
+  preview would 500. Generating from a preview therefore means exposing the billing-backed
+  key to every preview build; generating from production means a redeploy whose frontend
+  bundle is byte-identical. Chose production
+- **A new image failure mode, distinct from the poster-on-white one.** The `museum-of-us`
+  prompt asked for "carved facets", "worn edges", "incised marks" and "thick impasto paint".
+  Every one of those describes a *physical surface*, so the model built a sculptural relief
+  panel and then did what it does with any object: photographed it outdoors, against trees
+  and grass, with a thumb visible at the bottom edge. `STYLE_SUFFIX` did not catch it — the
+  suffix forbids a frame, a wall and a background surface, and this was none of those. The
+  artwork had simply become a thing that exists somewhere. Fixed by flattening the
+  vocabulary to "silhouettes", "flat painted shapes" and "outlines", which describe a picture
+  rather than an object
+- **Rebuilt the border check and found its blind spot.** Reconstructed from the description
+  in the 2026-09-27 entry: score each image on the minimum per-edge luminance standard
+  deviation (how flat the flattest edge is) and the maximum spread between the four edge
+  means (how alike the edges are), flagging only when both are low — the two-number form
+  that the earlier entry records as necessary to avoid false-positiving a flat-by-style
+  composition. Validated against a synthetic inset control (0/0, flagged) and the six
+  existing metaphors (flatness 19-28, none flagged). **It scores the bad `museum-of-us`
+  image as full-bleed**, because the foliage genuinely reaches all four edges. The check
+  detects artwork inset on a plain ground and nothing else; artwork-as-object-in-a-scene has
+  to be caught by eye. Still living in a scratchpad rather than `scripts/`
+- Generated the six theme images through the production endpoint, inspected all six
+  individually, regenerated `museum-of-us` once after the prompt fix. Kept out of `public/`
+  — they are ballot material, not unit assets, and committing them would change the live
+  site. Published as a gallery page for staff to read before voting
+- **The pinned git credential helper is repo-local and did not survive re-cloning**, which
+  is a sharp edge the 2026-09-27 entry did not anticipate. A fresh clone inherits only the
+  global `gh auth git-credential` helper, which serves whichever account is active — so the
+  first push failed with the same misleading "Repository not found" 404 as before, on a
+  machine where this was supposedly already fixed. Re-applied the two `git config --local`
+  lines documented in the helper script's own header. Note a second trap: **PowerShell
+  silently drops an empty-string argument to a native executable**, so
+  `git config --local credential.https://github.com.helper ""` writes nothing and the reset
+  entry that clears the inherited global helper never appears. It has to be written from a
+  POSIX shell (or straight into `.git/config`). Verify with
+  `printf 'protocol=https\nhost=github.com\n\n' | git credential fill`, which names the
+  account git will actually use
+
+---
+
 ## 2026-09-27
 
 - Cloned the repo to a local Windows working copy; fixed the git identity that had been
