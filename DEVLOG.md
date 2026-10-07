@@ -4,6 +4,33 @@ A running record of decisions, changes, and progress on this project.
 
 ---
 
+## 2026-10-07
+
+- Made the repo **public**. Until then `git pull` failed with "Repository not found",
+  because the only account signed in to `gh` on this machine was `emilpulse-code`, which
+  cannot see a private repo owned by `ildottoreGUSD`. Public fixes reads from any account;
+  pushes still need `ildottoreGUSD`, which was signed in again with `gh auth login`
+- **The pinned credential helper was lost a second time, and the cause was different.** On
+  2026-10-04 it was the repo-local config that had gone; this time the helper script itself,
+  `~/.git-credential-github-ildottoregusd.sh`, no longer existed, and the `ildottoreGUSD`
+  `gh` login was gone with it. Both live outside the repo, so neither is protected by git.
+  Recreated the script (it runs `gh auth token --user ildottoreGUSD`) and re-applied the two
+  `git config --local` lines. Verified the same way as before: with `gh` switched to
+  `emilpulse-code`, `git credential fill` still returns `username=ildottoreGUSD` and
+  `git push --dry-run` succeeds
+- A third shell trap, alongside the PowerShell empty-argument one: **Git Bash rewrites a
+  helper value of `!~/...`** into `~C:/Program Files/Git/...`, which then fails at push
+  time rather than when it is set. The helper is now stored as
+  `!"$HOME/.git-credential-github-ildottoregusd.sh"`, set with `MSYS_NO_PATHCONV=1`
+- Confirmed how the site is published: every push to `main` deploys straight to production
+  on `ae27.gusddev.app`. GitHub's deployment history shows `vercel[bot]` creating a
+  Production deployment for each of the last three commits. There is no separate deploy step
+- **Returning after a long gap:** pull, make changes, commit and push. If a push fails with
+  "Repository not found", the account is wrong, not the repo: check
+  `printf 'protocol=https\nhost=github.com\n\n' | git credential fill` and restore the
+  helper as above. If `gh` asks for a login, run `gh auth login` and approve it as
+  `ildottoreGUSD`
+
 ## 2026-10-04
 
 - Reviewed the whole app ahead of planning the 2026-27 unit. Findings worth keeping: the
