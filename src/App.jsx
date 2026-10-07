@@ -7,7 +7,7 @@ import {
   UserCheck, Stethoscope, Monitor, PenTool, QrCode, Loader2, 
   RefreshCw, Search, MessageSquare, ShieldAlert, CheckCircle2, 
   Castle, ChevronRight, AlertCircle, Coffee, Megaphone, Camera,
-  Download, LayoutTemplate, Users, Star, X, Copy, Check
+  Download, LayoutTemplate, Users, Star, X, Copy, Check, CalendarPlus
 } from 'lucide-react';
 
 // --- CONSTANTS ---
@@ -669,9 +669,9 @@ export default function App() {
                   <span className="inline-flex items-center gap-2 uppercase tracking-[0.3em] font-black text-red-700 text-xs mb-4"><Megaphone size={16}/> Heads up</span>
                   <h2 className="text-3xl md:text-4xl font-black mb-4 tracking-tight">You're looking at last year's unit</h2>
                   <p className="text-slate-800 text-lg leading-relaxed mb-3">Everything on this site is from <strong>ARTistic Expressions 2026, "What Gives Me Strength?"</strong> The 2027 units are in development.</p>
-                  <p className="text-slate-800 text-lg leading-relaxed">An orientation session will be provided for all participating teachers on <strong>Monday, March 29, 2027</strong>. Please register to reserve your spot.</p>
+                  <p className="text-slate-800 text-lg leading-relaxed"><strong>Save the date: Monday, March 29, 2027.</strong> Participating teachers will be invited to an orientation session for the 2027 units. Mark your calendar now; your invitation will follow.</p>
                 </div>
-                <a href="https://vapaevents.gusddev.app" target="_blank" rel="noreferrer" className="flex items-center justify-center bg-slate-900 text-white px-10 py-4 w-full md:w-auto rounded-2xl font-bold shadow-lg hover:bg-slate-800 transition text-center whitespace-nowrap"><Users className="mr-2" size={18}/> Register for Orientation</a>
+                <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=ARTistic%20Expressions%202027%20Teacher%20Orientation&dates=20270329%2F20270330&details=Save%20the%20date%3A%20orientation%20session%20for%20participating%20ARTistic%20Expressions%202027%20teachers.%20Your%20invitation%20with%20details%20will%20follow." target="_blank" rel="noreferrer" className="flex items-center justify-center bg-slate-900 text-white px-10 py-4 w-full md:w-auto rounded-2xl font-bold shadow-lg hover:bg-slate-800 transition text-center whitespace-nowrap"><CalendarPlus className="mr-2" size={18}/> Add to Google Calendar</a>
               </div>
             </div>
 
