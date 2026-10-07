@@ -30,6 +30,22 @@ A running record of decisions, changes, and progress on this project.
   `printf 'protocol=https\nhost=github.com\n\n' | git credential fill` and restore the
   helper as above. If `gh` asks for a login, run `gh auth login` and approve it as
   `ildottoreGUSD`
+- Added a 2027 notice at the top of the Classroom tab, styled as a yellow note taped over
+  the page, telling visitors the site is last year's unit ("What Gives Me Strength?") and
+  that the 2027 units are in development
+- **The orientation is invitation-only, and the wording has to say so.** The note first
+  linked to registration on `vapaevents.gusddev.app`; that was dropped because teachers do
+  not register, they are invited. The first save-the-date draft then said "participating
+  teachers will be invited", which read as if anyone who marked their calendar would get an
+  invitation. The final copy names the audience: only teachers *selected to teach*
+  ARTistic Expressions 2027 receive the invitation
+- The button reads **Save the Date** and opens a prefilled Google Calendar event (a
+  `calendar.google.com/calendar/render?action=TEMPLATE` link, so no `.ics` file and no
+  backend). It is an all-day event on 2027-03-29, titled "SAVE THE DATE: ARTistic
+  Expressions 2027 Orientation", and its description says it is not an invitation and
+  that the time and location come in the separate invite. It is all-day only because no
+  start time or location had been set. When they are known, change `dates` to
+  `20270329T…/20270329T…` with `&ctz=America/Los_Angeles` and add `&location=`
 
 ## 2026-10-04
 
