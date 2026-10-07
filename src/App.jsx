@@ -660,16 +660,18 @@ export default function App() {
       <main className="max-w-6xl mx-auto p-6 lg:p-12">
         {activeTab === 'classroom' && (
           <div className="space-y-16 animate-fade-in">
-            {/* 2027 ANNOUNCEMENT HERO */}
-            <div className="bg-slate-900 text-white p-8 md:p-12 rounded-[2rem] shadow-xl relative overflow-hidden border-b-8 border-teal-600">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/10 rounded-full -mr-20 -mt-20 blur-3xl" />
-              <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
+            {/* 2027 NOTICE: styled as a paper note taped over last year's site */}
+            <div className="relative -rotate-1 mx-1 md:mx-6">
+              <div aria-hidden="true" className="absolute -top-3 left-6 md:left-12 w-24 md:w-32 h-7 bg-amber-100/80 border border-amber-200/80 shadow-sm -rotate-6 z-10" />
+              <div aria-hidden="true" className="absolute -top-3 right-6 md:right-12 w-24 md:w-32 h-7 bg-amber-100/80 border border-amber-200/80 shadow-sm rotate-6 z-10" />
+              <div className="bg-yellow-200 text-slate-900 p-8 md:p-12 rounded-sm shadow-2xl ring-1 ring-yellow-300 flex flex-col md:flex-row items-center gap-8">
                 <div className="flex-grow text-center md:text-left">
-                  <span className="inline-flex items-center gap-2 uppercase tracking-[0.3em] font-bold text-teal-400 text-xs mb-4"><Megaphone size={16}/> Coming in 2027</span>
-                  <h2 className="text-3xl md:text-4xl font-black mb-4 tracking-tight">The 2027 Units Are in Development</h2>
-                  <p className="text-slate-300 text-lg leading-relaxed">An orientation session will be provided for all participating teachers on <strong className="text-white">Monday, March 29, 2027</strong>. Please register to reserve your spot.</p>
+                  <span className="inline-flex items-center gap-2 uppercase tracking-[0.3em] font-black text-red-700 text-xs mb-4"><Megaphone size={16}/> Heads up</span>
+                  <h2 className="text-3xl md:text-4xl font-black mb-4 tracking-tight">You're looking at last year's unit</h2>
+                  <p className="text-slate-800 text-lg leading-relaxed mb-3">Everything on this site is from <strong>ARTistic Expressions 2026, "What Gives Me Strength?"</strong> The 2027 units are in development.</p>
+                  <p className="text-slate-800 text-lg leading-relaxed">An orientation session will be provided for all participating teachers on <strong>Monday, March 29, 2027</strong>. Please register to reserve your spot.</p>
                 </div>
-                <a href="https://vapaevents.gusddev.app" target="_blank" rel="noreferrer" className="flex items-center justify-center bg-teal-600 text-white px-10 py-4 w-full md:w-auto rounded-2xl font-bold shadow-lg hover:bg-teal-700 transition text-center whitespace-nowrap"><Users className="mr-2" size={18}/> Register for Orientation</a>
+                <a href="https://vapaevents.gusddev.app" target="_blank" rel="noreferrer" className="flex items-center justify-center bg-slate-900 text-white px-10 py-4 w-full md:w-auto rounded-2xl font-bold shadow-lg hover:bg-slate-800 transition text-center whitespace-nowrap"><Users className="mr-2" size={18}/> Register for Orientation</a>
               </div>
             </div>
 
